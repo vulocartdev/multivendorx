@@ -31,10 +31,6 @@
         "wp-coding-standards/wpcs": "dev-develop",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "phpcompatibility/phpcompatibility-wp": "dev-master",
-        "phpunit/phpunit": "9.6.x-dev",
-        "wp-phpunit/wp-phpunit": "dev-master",
-        "yoast/phpunit-polyfills": "^4.0@dev",
-        "brain/monkey": "^2.0@dev",
         "automattic/jetpack-changelogger": "^6.0@dev"
     },
     "scripts": {

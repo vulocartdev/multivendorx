@@ -40,7 +40,7 @@ class Install {
      * Class constructor
      */
     public function __construct() {
-		// phpcs:ignore WordPress.WP.CronInterval.ChangeDetected
+		// phpcs:ignore WordPress.WP.CronInterval.ChangeDetected, WordPress.WP.CronInterval.CronSchedulesInterval -- 10-minute interval is intentional; the stock-notification cron batches subscribers and needs to run more often than the default schedules allow.
         add_filter( 'cron_schedules', array( $this, 'register_custom_schedule' ) );
         add_action( 'init', array( $this, 'run_migration' ) );
     }
@@ -208,27 +208,28 @@ class Install {
                 ARRAY_A
             );
 
-            // Prepare insert value.
-            $values = '';
+            // Prepare insert placeholders and values (kept separate so every value is passed through $wpdb->prepare()).
+            $row_placeholders = array();
+            $row_values       = array();
 
             foreach ( $subscribe_datas as $subscribe_data ) {
-                $product_id = $subscribe_data['product_id'];
-                $user_id    = $subscribe_data['user_id'];
-                $email      = $subscribe_data['email'];
-                $status     = self::STATUS_MAP[ $subscribe_data['status'] ];
-                $date       = $subscribe_data['date'];
-
-                $values .= "( {$product_id}, {$user_id},  '{$email}', '{$status}', '{$date}' ),";
+                $row_placeholders[] = '( %d, %d, %s, %s, %s )';
+                $row_values[]       = $subscribe_data['product_id'];
+                $row_values[]       = $subscribe_data['user_id'];
+                $row_values[]       = $subscribe_data['email'];
+                $row_values[]       = self::STATUS_MAP[ $subscribe_data['status'] ];
+                $row_values[]       = $subscribe_data['date'];
             }
 
             // If result exist then insert those result into custom table.
-            if ( $values ) {
-                // Remove last ','.
-                $values = substr( $values, 0, -1 );
-
+            if ( $row_values ) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->query(
-                    "INSERT IGNORE INTO {$wpdb->prefix}notifima_subscribers (product_id, user_id, email, status, create_time ) VALUES {$values} "
+                    $wpdb->prepare(
+                        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- placeholder count is built dynamically (5 per row) and always matches $row_values; phpcs can't verify that statically.
+                        "INSERT IGNORE INTO {$wpdb->prefix}notifima_subscribers (product_id, user_id, email, status, create_time ) VALUES " . implode( ', ', $row_placeholders ),
+                        $row_values
+                    )
                 );
             }
 

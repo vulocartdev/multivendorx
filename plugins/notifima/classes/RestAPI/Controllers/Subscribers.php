@@ -206,7 +206,7 @@ class Subscribers extends \WP_REST_Controller {
                         'user_link'  => $user ? get_edit_user_link( $user->ID ) : '',
                         'product'    => $product ? $product->get_name() : '',
                         'product_id' => $product ? $product->get_id() : '',
-                        'image'      => $image ?: wc_placeholder_img_src(),
+                        'image'      => $image ? $image : wc_placeholder_img_src(),
                     ),
                     $subscriber
                 );
