@@ -193,7 +193,7 @@ class Install {
         try {
             // Get woosubscribe post and post meta.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-            $subscribe_datas = $wpdb->get_results(
+            $legacy_subscriber_rows = $wpdb->get_results(
                 "SELECT posts.ID as id,
                     posts.post_date as date,
                     posts.post_title as email,
@@ -212,13 +212,13 @@ class Install {
             $row_placeholders = array();
             $row_values       = array();
 
-            foreach ( $subscribe_datas as $subscribe_data ) {
+            foreach ( $legacy_subscriber_rows as $legacy_subscriber_row ) {
                 $row_placeholders[] = '( %d, %d, %s, %s, %s )';
-                $row_values[]       = $subscribe_data['product_id'];
-                $row_values[]       = $subscribe_data['user_id'];
-                $row_values[]       = $subscribe_data['email'];
-                $row_values[]       = self::STATUS_MAP[ $subscribe_data['status'] ];
-                $row_values[]       = $subscribe_data['date'];
+                $row_values[]       = $legacy_subscriber_row['product_id'];
+                $row_values[]       = $legacy_subscriber_row['user_id'];
+                $row_values[]       = $legacy_subscriber_row['email'];
+                $row_values[]       = self::STATUS_MAP[ $legacy_subscriber_row['status'] ];
+                $row_values[]       = $legacy_subscriber_row['date'];
             }
 
             // If result exist then insert those result into custom table.
@@ -234,8 +234,8 @@ class Install {
             }
 
             // Delete the post seperatly, If there is problem in migration post will not delete permanently.
-            foreach ( $subscribe_datas as $subscribe_data ) {
-                wp_delete_post( $subscribe_data['id'] );
+            foreach ( $legacy_subscriber_rows as $legacy_subscriber_row ) {
+                wp_delete_post( $legacy_subscriber_row['id'] );
             }
 
             // Get subscriber count.
@@ -407,7 +407,7 @@ class Install {
 
             // Equevelent to check plugin version <= 2.3.0.
             if ( $dc_was_installed || $woo_was_installed ) {
-                $all_product_ids = get_posts(
+                $product_ids_with_legacy_subscriber_meta = get_posts(
                     array(
 						'post_type'   => 'product',
 						'post_status' => 'publish',
@@ -423,8 +423,8 @@ class Install {
                 );
 
                 // Database migration for subscriber data before version 2.3.0.
-                foreach ( $all_product_ids as $product_id ) {
-                    $current_product_ids = Subscriber::get_related_product( wc_get_product( $product_id ) );
+                foreach ( $product_ids_with_legacy_subscriber_meta as $parent_product_id ) {
+                    $current_product_ids = Subscriber::get_related_product( wc_get_product( $parent_product_id ) );
                     foreach ( $current_product_ids as $product_id ) {
                         $product_subscribers = get_post_meta( $product_id, '_product_subscriber', true );
                         if ( $product_subscribers && ! empty( $product_subscribers ) ) {

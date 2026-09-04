@@ -89,9 +89,7 @@ class FrontEnd {
      * @param object $child individual child of grouped product.
      */
     public function append_grouped_product_subscription_form( $value, $child ) {
-        $value = $value . $this->get_subscription_form( $child );
-
-        return $value;
+        return $value . $this->get_subscription_form( $child );
     }
 
     /**

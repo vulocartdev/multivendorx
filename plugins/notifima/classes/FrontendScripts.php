@@ -87,12 +87,7 @@ class FrontendScripts {
 	 * Loads block assets and additional scripts defined through the `notifima_register_scripts` filter.
 	 */
     public static function register_frontend_scripts() {
-        $version      = Notifima()->version;
-        $index_asset  = include self::get_asset_path( 'file' ) . 'js/index.asset.php';
-        $vendor_asset = include self::get_asset_path( 'file' ) . 'js/vendors.asset.php';
-
-        $base_url    = self::get_asset_path() . 'js/';
-        $common_deps = array( 'jquery', 'jquery-blockui', 'wp-element', 'wp-i18n', 'wp-blocks' );
+        $version = Notifima()->version;
 
         $block_scripts = array(
             'subscribe-form',
